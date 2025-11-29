@@ -1,0 +1,61 @@
+name: Microservices CI/CD
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service: [ "user-service", "product-service" ]
+
+    defaults:
+      run:
+        working-directory: ${{ matrix.service }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test
+        
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build user-service image
+        run: docker build -t user-service:ci ./user-service
+
+      - name: Build product-service image
+        run: docker build -t product-service:ci ./product-service
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: (Design) Deploy to local Kubernetes cluster
+        run: |
+          echo "This step would run: kubectl apply -f k8s/"
+          echo "In a real environment, this would deploy to the local cluster."
