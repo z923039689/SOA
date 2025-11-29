@@ -1,19 +1,15 @@
-const express = require("express");
-const cors = require("cors");
-const usersRouter = require("./routes/users");
-
+const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 4000;
 
-app.use(cors());
 app.use(express.json());
+app.use('/api/users', require('./routes/users'));
 
-app.get("/", (req, res) => {
-  res.json({ message: "User Service is running" });
-});
 
-app.use("/api/users", usersRouter);
+if (require.main === module) {
+  const PORT = process.env.PORT || 4000;
+  app.listen(PORT, () => {
+    console.log(`User service running on port ${PORT}`);
+  });
+}
 
-app.listen(PORT, () => {
-  console.log(`User Service listening on port ${PORT}`);
-});
+module.exports = app;
